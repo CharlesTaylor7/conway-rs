@@ -16,8 +16,8 @@ struct Write {
     live: bool,
 }
 
-const LIVE: u8 = 42;
-const DEAD: u8 = 46;
+const LIVE: u8 = '*' as u8;
+const DEAD: u8 = '.' as u8;
 
 fn main() {
     let width = WIDTH;
@@ -47,7 +47,7 @@ fn main() {
     }
 
     // Allocate needed
-    let row: isize = isize::try_from(width).unwrap() + 1;
+    let row: isize = width as isize + 1;
     let offsets: Vec<isize> = vec![-row - 1, -row, -row + 1, -1, 1, row - 1, row, row + 1];
 
     let bytes = unsafe { grid.as_bytes_mut() };
@@ -96,9 +96,4 @@ fn main() {
         }
         writes.clear();
     }
-}
-
-#[allow(dead_code)]
-fn write(x: usize, y: usize, c: char) {
-    print!("\x1b[{};{}H{}", y + 1, x + 1, c);
 }
