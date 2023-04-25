@@ -1,6 +1,9 @@
-use std::time::Duration;
-use std::thread::sleep;
-use std::str;
+use std::{time::Duration, thread, str, fs::File, io::{BufRead, BufReader}};
+
+// TODO: configuration? 
+const WIDTH: usize = 80;
+const HEIGHT: usize = 25;
+const ANIMATION_INTERVAL: Duration = Duration::new(0, 200_000_000);
 
 struct Write {
     pub index: usize,
@@ -18,25 +21,23 @@ fn main() {
 }
 
 unsafe fn unsafe_main() {
-    // TODO: read from file
-    let mut initial = vec![
-        ".*.",
-        "..*",
-        "***",
-    ];
-    
-    let height = 25;
-    let width = 80;
+    let file = File::open("conway.txt").unwrap();
+    let mut initial = Vec::new();
+    for line in BufReader::new(file).lines() {
+        initial.push(line.unwrap()); 
+    }
 
+    let width = WIDTH;    
+    let height = HEIGHT;    
     let mut grid = String::new();
 
     // Pad
     for _ in 0..(height - initial.len()) {
-        initial.push("");
+        initial.push(String::new());
     }
 
-    for line in initial {
-        grid.push_str(line);
+    for line in &initial {
+        grid.push_str(&line);
         let count = width - line.len();
         for _ in 0..count {
             grid.push('.');
@@ -44,7 +45,7 @@ unsafe fn unsafe_main() {
         grid.push('\n');
     }
 
-    // Advance
+    // Allocate needed
     let row: isize = isize::try_from(width).unwrap() + 1;
     let offsets: Vec<isize> = vec![
         -row - 1, -row, -row + 1,
@@ -59,13 +60,16 @@ unsafe fn unsafe_main() {
         // Print current state
         print!("\x1b[1;1H\x1b[0J");
         print!("{}", str::from_utf8_unchecked(bytes));
-        sleep(Duration::new(0, 400_000_000));
-        writes.clear();
+        thread::sleep(ANIMATION_INTERVAL);
+
+        // advance
         for index in 0..bytes.len() {
             let cell = bytes[index];
             if cell == LINE_FEED {
                 continue;
             }
+
+            // count live neighbors
             let index_as_isize: isize = index.try_into().unwrap();
             let mut live_count = 0;
             for offset in &offsets {
@@ -91,5 +95,6 @@ unsafe fn unsafe_main() {
         for write in &writes {
             bytes[write.index] = if write.live { LIVE } else { DEAD };
         }
+        writes.clear();
     }
 }
