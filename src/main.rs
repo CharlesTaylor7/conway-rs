@@ -16,7 +16,7 @@ struct Write {
     live: bool,
 }
 
-const LIVE: u8 = '@' as u8;
+const LIVE: u8 = '*' as u8;
 const DEAD: u8 = '.' as u8;
 const LINE_FEED: u8 = '\n' as u8;
 
